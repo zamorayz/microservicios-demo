@@ -1,4 +1,4 @@
-name: CI/CD - Build, Push and Deploy
+name: CI - Build and Push Docker Image
 
 on:
   push:
@@ -7,25 +7,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        service:
-          - frontend
-          - adservice
-          - checkoutservice
-          - currencyservice
-          - emailservice
-          - loadgenerator
-          - paymentservice
-          - productcatalogservice
-          - recommendationservice
-          - shippingservice
-          - shoppingassistantservice
-        include:
-          - service: cartservice
-            context: ./src/cartservice/src
-
     steps:
       - name: Checkout del repo
         uses: actions/checkout@v4
@@ -35,23 +16,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build y push de ${{ matrix.service }}
+      
+      - name: Build y push de la imagen
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.context || format('./src/{0}', matrix.service) }}
+          context: ./src/frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout del repo
-        uses: actions/checkout@v4
-
-      - name: Deploy con Helm
-        run: |
-          helm upgrade --install online-boutique ./helm-chart `
-            --set images.repository=${{ secrets.DOCKERHUB_USERNAME }} `
-            --set images.tag=latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/online-boutique-frontend:latest
