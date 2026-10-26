@@ -51,7 +51,7 @@ jobs:
           push: true
           tags: ${{ env.DOCKERHUB_USERNAME }}/${{ matrix.service }}:latest
 
-   deploy:
+  deploy:
     needs: build-and-push
     runs-on: self-hosted
     steps:
@@ -67,4 +67,4 @@ jobs:
             secret/data/online-boutique/dockerhub username | DOCKERHUB_USERNAME
 
       - name: Deploy con Helm
-        run: helm upgrade --install online-boutique ./helm-chart --take-ownership --force-conflicts --set images.repository=${{ env.DOCKERHUB_USERNAME }} --set images.tag=latest
+        run: helm upgrade --install online-boutique ./helm-chart --set images.repository=${{ env.DOCKERHUB_USERNAME }} --set images.tag=latest
