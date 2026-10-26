@@ -1,0 +1,3 @@
+---
+vault_ui_enabled: true
+vault_data_path: /opt/vault/data

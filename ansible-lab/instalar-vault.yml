@@ -1,0 +1,65 @@
+---
+- name: Asegurar Vault instalado y configurado en la EC2 existente
+  hosts: vault
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Instalar dependencias
+      ansible.builtin.apt:
+        name: [ca-certificates, curl, gnupg]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Crear directorio de llaves del repositorio
+      ansible.builtin.file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Descargar llave oficial GPG de HashiCorp
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /usr/share/keyrings/hashicorp-archive-keyring.asc
+        mode: '0644'
+
+    - name: Configurar repositorio oficial de HashiCorp
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        filename: hashicorp
+        state: present
+        update_cache: true
+
+    - name: Instalar Vault
+      ansible.builtin.apt:
+        name: vault
+        state: present
+
+    - name: Asegurar el directorio persistente de datos
+      ansible.builtin.file:
+        path: "{{ vault_data_path }}"
+        state: directory
+        owner: vault
+        group: vault
+        mode: '0750'
+
+    - name: Configurar Vault y habilitar la interfaz web
+      ansible.builtin.template:
+        src: templates/vault.hcl.j2
+        dest: /etc/vault.d/vault.hcl
+        owner: vault
+        group: vault
+        mode: '0640'
+      notify: Reiniciar Vault
+
+    - name: Habilitar e iniciar el servicio
+      ansible.builtin.systemd:
+        name: vault
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Reiniciar Vault
+      ansible.builtin.systemd:
+        name: vault
+        state: restarted

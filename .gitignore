@@ -27,3 +27,13 @@ pkg/
 release/wi-kubernetes-manifests.yaml
 vendor/
 gha-creds-*.json
+
+# Datos y credenciales locales de AWS/Vault (Fase III)
+vault-llaves.txt
+vault-llaves.bak
+*.pem
+terraform_aws/terraform.tfvars
+terraform_aws/.terraform/
+terraform_aws/terraform.tfstate
+terraform_aws/terraform.tfstate.*
+!terraform_aws/.terraform.lock.hcl
